@@ -1,61 +1,33 @@
-"""GAPNITY — FastAPI entrypoint."""
-
 from __future__ import annotations
 
 from dotenv import load_dotenv
 load_dotenv()
 
-
 import os
 from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.routers import meetings, sprints, dashboard, actions, themes, memory, copilot
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ── Startup ──────────────────────────────────────────────────────────────
-    from app.db.base import init_db, db_is_empty, get_db, SessionLocal
+    from app.db.base import init_db, db_is_empty, DATABASE_URL
     init_db()
-    if SessionLocal:
-        db = SessionLocal()
-        try:
-            if db_is_empty(db):
-                from app.db.seed import seed
-                seed(db)
-                print("✅ Database seeded with fixture data.")
-            else:
-                print("✅ Database already has data — skipping seed.")
-        finally:
-            db.close()
-    else:
-        print("⚠️  No DATABASE_URL set — running with in-memory fixtures.")
+    if DATABASE_URL:
+        if db_is_empty():
+            from app.db.seed import seed
+            seed()
+            print("✅ Database seeded with fixture data.")
+        else:
+            print("✅ Database already has data — skipping seed.")
     yield
-    # ── Shutdown (nothing to do) ──────────────────────────────────────────────
 
 
-app = FastAPI(
-    title="GAPNITY",
-    version="0.1.0",
-    description="Retrospective intelligence API",
-    lifespan=lifespan,
-)
+app = FastAPI(title="GAPNITY", version="0.1.0", description="Retrospective intelligence API", lifespan=lifespan)
 
-origins = [
-    o.strip()
-    for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
-    if o.strip()
-]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
 @app.get("/health")
