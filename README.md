@@ -86,7 +86,15 @@ Plus:
 4. ✅ Sprint comparison
 5. ✅ Recurring issue detection (heatmap)
 6. ✅ Action effectiveness scoring
-7. ⬜ Jira integration (start with `/api/integrations/jira/import`)
+7. ✅ Jira integration — OAuth 2.0 (3LO), import sprints & issues, sync status back
+
+## Jira integration setup
+
+1. Go to https://developer.atlassian.com/console/myapps/ and create an **OAuth 2.0 (3LO)** app.
+2. Add callback URL: `http://localhost:8000/api/integrations/jira/callback`
+3. Grant scopes: `read:jira-work` `read:jira-user` `write:jira-work` `offline_access`
+4. Copy `.env.example` → `.env` and fill in `JIRA_CLIENT_ID` and `JIRA_CLIENT_SECRET`.
+5. Restart the backend, then visit `/integrations/jira` in the app and click **Connect Jira**.
 
 ## Evaluation criteria (§20)
 

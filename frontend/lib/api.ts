@@ -58,4 +58,91 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }).then((r) => r.json()).catch(() => ({ ok: false })),
+
+  // ── Jira integration ────────────────────────────────────────────────────────
+  jira: {
+    status: (teamId = "platform") =>
+      fetchJSON(`/api/integrations/jira/status?team_id=${teamId}`, { connected: false }),
+
+    authorizeUrl: (teamId = "platform") =>
+      `${API}/api/integrations/jira/authorize?team_id=${teamId}`,
+
+    disconnect: (teamId = "platform") =>
+      fetch(`${API}/api/integrations/jira/disconnect?team_id=${teamId}`, { method: "DELETE" })
+        .then((r) => r.json()).catch(() => ({ ok: false })),
+
+    boards: (teamId = "platform") =>
+      fetchJSON(`/api/integrations/jira/boards?team_id=${teamId}`, [] as JiraBoard[]),
+
+    sprints: (boardId: number, teamId = "platform") =>
+      fetchJSON(`/api/integrations/jira/boards/${boardId}/sprints?team_id=${teamId}`, [] as JiraSprint[]),
+
+    importSprint: (payload: { board_id: number; sprint_id: number; team_id?: string }) =>
+      fetch(`${API}/api/integrations/jira/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ team_id: "platform", ...payload }),
+      }).then((r) => r.json()),
+
+    sync: (payload: { board_id: number; sprint_id: number }, teamId = "platform") =>
+      fetch(`${API}/api/integrations/jira/sync?team_id=${teamId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).then((r) => r.json()),
+  },
 };
+
+// ── Jira types (used only in the frontend) ───────────────────────────────────
+export interface JiraBoard {
+  id: number;
+  name: string;
+  type: string;
+  project_key: string | null;
+}
+
+export interface JiraSprint {
+  id: number;
+  name: string;
+  state: "active" | "closed" | "future";
+  start_date: string | null;
+  end_date: string | null;
+}
+
+export interface JiraIssue {
+  id: string;
+  key: string;
+  summary: string;
+  status: string;
+  issue_type: string;
+  assignee: string | null;
+  story_points: number | null;
+  labels: string[];
+}
+
+export interface JiraConnectionStatus {
+  connected: boolean;
+  site_name?: string;
+  site_url?: string;
+  cloud_id?: string;
+  scopes?: string[];
+}
+
+export interface ImportedSprint {
+  sprint: JiraSprint;
+  issues: JiraIssue[];
+  total: number;
+  imported: number;
+}
+
+export interface SyncResponse {
+  synced: number;
+  changed: number;
+  issues: {
+    key: string;
+    summary: string;
+    previous_status: string;
+    current_status: string;
+    changed: boolean;
+  }[];
+}

@@ -95,8 +95,8 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <a href="#auth" className="btn border-white/10 bg-transparent text-slate-200 hover:bg-white/5">Login</a>
-            <a href="#auth" className="btn-primary">Sign Up</a>
+            <a href="/login" className="btn border-white/10 bg-transparent text-slate-200 hover:bg-white/5">Login</a>
+            <a href="/signup" className="btn-primary">Sign Up</a>
           </div>
         </nav>
 
@@ -367,42 +367,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="auth" className="py-24">
-          <div className="mx-auto max-w-2xl text-center">
-            <div className="text-xs uppercase tracking-[0.28em] text-slate-400">Login / Signup</div>
-            <h2 className="mt-4 text-3xl font-semibold text-white md:text-4xl">Simple access for fast team onboarding.</h2>
-          </div>
-          <div className="mt-12 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-8">
-              <div className="text-xl font-semibold text-white">Login</div>
-              <div className="mt-2 text-sm text-slate-400">Jump back into your team workspace.</div>
-              <form className="mt-6 space-y-4">
-                <Field label="Email" placeholder="you@company.com" />
-                <Field label="Password" placeholder="Enter password" type="password" />
-                <div className="text-sm text-slate-400 hover:text-white">
-                  <a href="#auth">Forgot password</a>
-                </div>
-                <Link href="/dashboard" className="btn-primary w-full justify-center py-3 text-base">
-                  Login
-                </Link>
-              </form>
-            </div>
-            <div className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-8">
-              <div className="text-xl font-semibold text-white">Signup</div>
-              <div className="mt-2 text-sm text-slate-400">Create your workspace and start tracking improvement.</div>
-              <form className="mt-6 space-y-4">
-                <Field label="Name" placeholder="Alex Rivera" />
-                <Field label="Email" placeholder="alex@company.com" />
-                <Field label="Password" placeholder="Create password" type="password" />
-                <Field label="Company / Team name" placeholder="Platform Team" />
-                <Link href="/dashboard" className="btn-primary w-full justify-center py-3 text-base">
-                  Sign Up
-                </Link>
-              </form>
-            </div>
-          </div>
-        </section>
-
         <section className="py-24">
           <div className="rounded-[2.5rem] border border-white/10 bg-[linear-gradient(135deg,rgba(249,115,22,0.14),rgba(15,23,42,0.92),rgba(45,212,191,0.14))] px-8 py-14 text-center">
             <div className="text-xs uppercase tracking-[0.3em] text-slate-300">Turn Gaps Into Growth</div>
@@ -416,8 +380,8 @@ export default function LandingPage() {
         <footer id="docs" className="border-t border-white/10 py-10 text-sm text-slate-400">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-wrap items-center gap-4">
-              <a href="#auth" className="hover:text-white">Privacy Policy</a>
-              <a href="#auth" className="hover:text-white">Terms</a>
+              <a href="#" className="hover:text-white">Privacy Policy</a>
+              <a href="#" className="hover:text-white">Terms</a>
               <a href="mailto:hello@gapnity.com" className="hover:text-white">Contact</a>
               <a href="https://www.linkedin.com" className="hover:text-white">LinkedIn</a>
               <a href="https://x.com" className="hover:text-white">X</a>
@@ -430,23 +394,3 @@ export default function LandingPage() {
   );
 }
 
-function Field({
-  label,
-  placeholder,
-  type = "text",
-}: {
-  label: string;
-  placeholder: string;
-  type?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-sm text-slate-300">{label}</span>
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-accent focus:outline-none"
-      />
-    </label>
-  );
-}
