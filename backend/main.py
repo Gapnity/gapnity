@@ -7,7 +7,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import meetings, sprints, dashboard, actions, themes, memory, copilot, integrations
+from app.routers import meetings, sprints, dashboard, actions, themes, memory, copilot, integrations, workspaces, auth, oauth
 
 
 @asynccontextmanager
@@ -43,3 +43,6 @@ app.include_router(themes.router,    prefix="/api/themes",    tags=["themes"])
 app.include_router(memory.router,    prefix="/api/memory",    tags=["memory"])
 app.include_router(copilot.router,        prefix="/api/copilot",        tags=["copilot"])
 app.include_router(integrations.router,   prefix="/api/integrations",   tags=["integrations"])
+app.include_router(workspaces.router,     prefix="/api/workspaces",     tags=["workspaces"])
+app.include_router(auth.router,           prefix="/api/auth",           tags=["auth"])
+app.include_router(oauth.router,          prefix="/api/auth",           tags=["oauth"])

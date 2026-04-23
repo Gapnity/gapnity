@@ -5,17 +5,31 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { CopilotPanel } from "@/components/layout/CopilotPanel";
 import { CommandBar } from "@/components/shared/CommandBar";
+import { WorkspaceProvider } from "@/lib/workspace-context";
+import { AuthProvider } from "@/lib/auth-context";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isMarketingPage = pathname === "/" || pathname === "/login" || pathname === "/signup";
+  const isMarketingPage =
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/verify-email" ||
+    pathname === "/verify" ||
+    pathname === "/profile" ||
+    pathname === "/auth/callback";
+
+  const needsAuth = pathname === "/profile" || pathname === "/verify-email";
 
   if (isMarketingPage) {
-    return <>{children}</>;
+    return needsAuth
+      ? <AuthProvider>{children}</AuthProvider>
+      : <>{children}</>;
   }
 
   return (
-    <>
+    <AuthProvider>
+    <WorkspaceProvider>
       <div className="flex min-h-screen">
         <Sidebar />
         <div className="flex flex-1 flex-col">
@@ -28,6 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <CopilotPanel />
       </div>
       <CommandBar />
-    </>
+    </WorkspaceProvider>
+    </AuthProvider>
   );
 }
