@@ -17,7 +17,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname === "/verify-email" ||
     pathname === "/verify" ||
     pathname === "/profile" ||
-    pathname === "/auth/callback";
+    pathname === "/auth/callback" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password";
 
   const needsAuth = pathname === "/profile" || pathname === "/verify-email";
 

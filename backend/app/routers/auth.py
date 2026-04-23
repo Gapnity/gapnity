@@ -120,6 +120,58 @@ def _send_verification_email(to_email: str, name: str, token: str) -> bool:
         return True  # Treat console-print as success in dev mode
 
 
+def _send_reset_email(to_email: str, name: str, token: str) -> bool:
+    """Send password reset email. Returns True on success."""
+    reset_url = f"{FRONTEND_URL}/reset-password?token={token}"
+
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_pass = os.getenv("SMTP_PASS")
+    from_email = os.getenv("SMTP_FROM", smtp_user or "noreply@gapnity.com")
+
+    html = f"""
+    <div style="font-family:sans-serif;max-width:520px;margin:auto;padding:32px;background:#0a0a0f;color:#e2e8f0;border-radius:16px;">
+      <img src="{FRONTEND_URL}/gapnity-logo.png" width="40" style="border-radius:8px;margin-bottom:20px;" />
+      <h2 style="color:#fff;margin:0 0 8px;">Reset your password, {name.split()[0]}</h2>
+      <p style="color:#94a3b8;margin:0 0 24px;">Click the button below to set a new password. This link expires in 1 hour.</p>
+      <a href="{reset_url}"
+         style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-weight:600;font-size:14px;">
+        Reset password
+      </a>
+      <p style="color:#475569;font-size:12px;margin-top:24px;">
+        Or copy this link: <a href="{reset_url}" style="color:#7c3aed;">{reset_url}</a>
+      </p>
+      <p style="color:#475569;font-size:12px;">If you didn't request a password reset, you can safely ignore this email.</p>
+    </div>
+    """
+
+    if smtp_host and smtp_user and smtp_pass:
+        try:
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = "Reset your GAPNITY password"
+            msg["From"] = f"GAPNITY <{from_email}>"
+            msg["To"] = to_email
+            msg.attach(MIMEText(html, "html"))
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.ehlo(); server.starttls(); server.ehlo()
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(from_email, to_email, msg.as_string())
+            print(f"🔑  Password reset email sent to {to_email}")
+            return True
+        except Exception as e:
+            print(f"⚠️  Reset email failed: {e}")
+            print(f"🔗  Reset URL (dev fallback): {reset_url}")
+            return False
+    else:
+        print(f"\n{'='*60}")
+        print(f"🔑  PASSWORD RESET EMAIL (no SMTP configured)")
+        print(f"To: {to_email}")
+        print(f"Link: {reset_url}")
+        print(f"{'='*60}\n")
+        return True
+
+
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
 class RegisterRequest(BaseModel):
@@ -170,6 +222,13 @@ class UpdateRequest(BaseModel):
     name: Optional[str] = None
     company: Optional[str] = None
     account_type: Optional[str] = None
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
 
 
 # ── Shared auth helper ────────────────────────────────────────────────────────
@@ -312,3 +371,39 @@ def update_profile(
     db.commit()
     db.refresh(user)
     return UserOut.model_validate(user)
+
+
+@router.post("/forgot-password")
+def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    if db is None:
+        raise HTTPException(status_code=503, detail="Database not available")
+    user = db.query(User).filter(User.email == body.email.lower()).first()
+    # Always return same message to avoid revealing whether email exists
+    if user and user.password_hash:  # only for email/password accounts
+        token = secrets.token_urlsafe(32)
+        user.reset_token = token
+        user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
+        db.commit()
+        _send_reset_email(user.email, user.name, token)
+    return {"message": "If an account with that email exists, a reset link has been sent."}
+
+
+@router.post("/reset-password")
+def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    if db is None:
+        raise HTTPException(status_code=503, detail="Database not available")
+    if len(body.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters.")
+    user = db.query(User).filter(User.reset_token == body.token).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset link.")
+    if user.reset_token_expires and datetime.utcnow() > user.reset_token_expires:
+        user.reset_token = None
+        user.reset_token_expires = None
+        db.commit()
+        raise HTTPException(status_code=400, detail="Reset link has expired. Please request a new one.")
+    user.password_hash = _hash(body.password)
+    user.reset_token = None
+    user.reset_token_expires = None
+    db.commit()
+    return {"message": "Password reset successfully. You can now sign in."}

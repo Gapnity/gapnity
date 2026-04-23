@@ -10,6 +10,16 @@ from sqlalchemy.orm import declarative_base, relationship
 Base = declarative_base()
 
 
+class Workspace(Base):
+    __tablename__ = "workspaces"
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    type = Column(String, default="project")   # "project" | "team"
+    description = Column(Text, nullable=True)
+    color = Column(String, default="#7c3aed")   # hex colour for avatar
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Team(Base):
     __tablename__ = "teams"
     id = Column(String, primary_key=True)
@@ -20,10 +30,19 @@ class Team(Base):
 class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True)
-    team_id = Column(String, ForeignKey("teams.id"))
+    team_id = Column(String, ForeignKey("teams.id"), nullable=True)
     name = Column(String, nullable=False)
-    email = Column(String, unique=True)
-    role = Column(String)
+    email = Column(String, unique=True, nullable=False)
+    role = Column(String, default="member")
+    password_hash = Column(String, nullable=True)
+    plan = Column(String, default="starter")         # starter | growth | scale
+    account_type = Column(String, default="personal") # personal | company
+    company = Column(String, nullable=True)
+    email_verified = Column(String, default="false")  # stored as string for compat
+    verification_token = Column(String, nullable=True)
+    reset_token = Column(String, nullable=True)
+    reset_token_expires = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class Sprint(Base):

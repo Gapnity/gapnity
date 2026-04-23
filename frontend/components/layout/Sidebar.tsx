@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import {
   LayoutDashboard, GitCommitHorizontal, LineChart, KanbanSquare,
-  Network, Sparkles, Upload, Settings, Plug,
+  Network, Sparkles, Upload, Plug,
 } from "lucide-react";
+import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -15,7 +16,7 @@ const nav = [
   { href: "/actions",   label: "Actions",   icon: KanbanSquare },
   { href: "/memory",    label: "Memory graph", icon: Network },
   { href: "/insights",  label: "AI Copilot",icon: Sparkles },
-  { href: "/upload",    label: "Ingest",    icon: Upload },
+  { href: "/ingest",    label: "Ingest",    icon: Upload },
   { href: "/integrations/jira", label: "Jira", icon: Plug },
 ];
 
@@ -38,7 +39,10 @@ export function Sidebar() {
           GAPNITY
         </div>
       </div>
-      <nav className="flex-1 space-y-0.5 px-2">
+      {/* Workspace switcher */}
+      <WorkspaceSwitcher />
+
+      <nav className="flex-1 space-y-0.5 px-2 pt-1">
         {nav.map((item) => {
           const active =
             item.href === "/dashboard"
@@ -62,14 +66,7 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="space-y-2 px-4 pb-5">
-        <div className="card flex items-center justify-between p-3">
-          <div>
-            <div className="text-xs text-ink-secondary">Workspace</div>
-            <div className="text-sm font-medium">Platform Team</div>
-          </div>
-          <Settings size={16} className="text-ink-secondary" />
-        </div>
+      <div className="px-4 pb-5 pt-2">
         <div className="flex items-center justify-between text-xs text-ink-muted">
           <span>v0.1 · MVP</span>
           <span>Dark</span>
